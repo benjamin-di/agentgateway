@@ -1,0 +1,34 @@
+name: CI
+on:
+  push:
+    branches: [fleet-candidate, fleet]
+  pull_request:
+    branches: [fleet-candidate, fleet]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: fleet-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CARGO_BUILD_JOBS: 2
+      CARGO_PROFILE_DEV_DEBUG: 0
+    steps:
+      - id: gate
+        uses: benjamin-di/ci/gate@v1
+      - if: steps.gate.outputs.verified != 'true'
+        uses: actions/checkout@v5
+      - if: steps.gate.outputs.verified != 'true'
+        uses: dtolnay/rust-toolchain@1.99.0
+      - if: steps.gate.outputs.verified != 'true'
+        uses: Swatinem/rust-cache@v2
+      - if: steps.gate.outputs.verified != 'true'
+        run: make lint
+      - if: steps.gate.outputs.verified != 'true'
+        run: make test
+      - if: steps.gate.outputs.verified != 'true'
+        run: make generate-schema && git diff --exit-code -- schema
