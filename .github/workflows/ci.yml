@@ -18,17 +18,9 @@ jobs:
       CARGO_BUILD_JOBS: 2
       CARGO_PROFILE_DEV_DEBUG: 0
     steps:
-      - id: gate
-        uses: benjamin-di/ci/gate@v1
-      - if: steps.gate.outputs.verified != 'true'
-        uses: actions/checkout@v5
-      - if: steps.gate.outputs.verified != 'true'
-        uses: dtolnay/rust-toolchain@1.99.0
-      - if: steps.gate.outputs.verified != 'true'
-        uses: Swatinem/rust-cache@v2
-      - if: steps.gate.outputs.verified != 'true'
-        run: make lint
-      - if: steps.gate.outputs.verified != 'true'
-        run: make test
-      - if: steps.gate.outputs.verified != 'true'
-        run: make generate-schema && git diff --exit-code -- schema
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@1.99.0
+      - uses: Swatinem/rust-cache@v2
+      - run: make lint
+      - run: make test
+      - run: make generate-schema && git diff --exit-code -- schema
