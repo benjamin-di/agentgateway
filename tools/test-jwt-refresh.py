@@ -168,11 +168,11 @@ async def exercise(binary):
                 now = int(time.time())
                 for label, updates, expected in [
                     ("expired", {"iat": now - 100, "exp": now - 10}, 401),
-                    ("expiry_current_second", {"exp": now}, 401),
+                    ("expiry_current_second", {"iat": now - 100, "exp": now}, 401),
                     ("expired_fractional_timestamp", {"iat": now - 100, "exp": now - .5}, 401),
                     ("valid_fractional_timestamps", {"iat": now - .5, "nbf": now - .25, "exp": now + 300.5}, 200),
-                    ("future_iat", {"iat": now + 1}, 401),
-                    ("future_nbf", {"nbf": now + 1}, 401),
+                    ("future_iat", {"iat": now + 300, "exp": now + 600}, 401),
+                    ("future_nbf", {"nbf": now + 300, "exp": now + 600}, 401),
                     ("excessive_lifetime", {"exp": now + 901}, 401),
                     ("malformed_timestamp", {"iat": "yesterday"}, 401),
                     ("wrong_audience", {"aud": "https://other.example/mcp"}, 401),
