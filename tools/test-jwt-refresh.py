@@ -106,7 +106,7 @@ async def exercise(binary):
                     ttl = 3600  # Exercise reactive renewal when a cached token expires early.
                 else:
                     raise AssertionError('Unexpected synthetic grant')
-                result = {"access_token": token(), "token_type": "Bearer", "expires_in": ttl, "scope": "all:use"}
+                result = {"access_token": token(exp=int(time.time()) + 5), "token_type": "Bearer", "expires_in": ttl, "scope": "all:use"}
                 if grant != ["client_credentials"]: result['refresh_token'] = 'synthetic-refresh'
                 return self.reply(200, result)
             message = json.loads(body)
