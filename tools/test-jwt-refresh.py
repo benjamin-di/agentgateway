@@ -55,7 +55,7 @@ async def exercise(binary):
     def token(**updates):
         now = int(time.time())
         claims = {"iss": issuer, "sub": "synthetic-person", "aud": url,
-                  "iat": now - 1, "exp": now + 5, "scope": "all:use"}
+                  "iat": now - 1, "exp": now + 60, "scope": "all:use"}
         claims.update(updates)
         return jwt.encode(claims, key, algorithm="RS256", headers={"kid": "test", "typ": "at+jwt"})
 
@@ -173,7 +173,7 @@ async def exercise(binary):
                     ("valid_fractional_timestamps", {"iat": now - .5, "nbf": now - .25, "exp": now + 300.5}, 200),
                     ("future_iat", {"iat": now + 300, "exp": now + 600}, 401),
                     ("future_nbf", {"nbf": now + 300, "exp": now + 600}, 401),
-                    ("excessive_lifetime", {"exp": now + 901}, 401),
+                    ("excessive_lifetime", {"iat": now, "exp": now + 901}, 401),
                     ("malformed_timestamp", {"iat": "yesterday"}, 401),
                     ("wrong_audience", {"aud": "https://other.example/mcp"}, 401),
                     ("wrong_scope", {"scope": "different:use"}, 403),
