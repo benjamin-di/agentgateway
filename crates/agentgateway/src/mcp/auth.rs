@@ -172,9 +172,14 @@ pub(crate) fn create_auth_required_response(
 		})
 		.and_then(|uri| uri.to_string().strip_suffix("/").map(ToString::to_string))
 		.unwrap_or_else(|| get_redirect_url(req, request_path));
-	let www_authenticate_value = format!(
+	let mut www_authenticate_value = format!(
 		"Bearer resource_metadata=\"{proxy_url}/.well-known/oauth-protected-resource{request_path}\""
 	);
+	if matches!(&inner, ProxyError::JwtAuthenticationFailure(error)
+		if !matches!(error, crate::http::jwt::TokenError::Missing))
+	{
+		www_authenticate_value.push_str(", error=\"invalid_token\"");
+	}
 
 	ProxyError::McpJwtAuthenticationFailure(Box::new(inner), www_authenticate_value)
 }
@@ -1018,6 +1023,34 @@ mod tests {
 			mode: crate::types::agent::McpAuthenticationMode::Strict,
 			client_id: None,
 			client_secret: None,
+		}
+	}
+
+	#[test]
+	fn token_errors_challenge_refresh_without_treating_missing_credentials_as_invalid() {
+		use crate::http::jwt::TokenError;
+		for error in [
+			TokenError::Expired,
+			TokenError::NotYetValid,
+			TokenError::IssuedInFuture,
+			TokenError::InvalidTimestamps,
+			TokenError::ExcessiveLifetime,
+			TokenError::Missing,
+		] {
+			let missing = error == TokenError::Missing;
+			let req = auth_request("https://gateway.example.com/all/mcp", default_auth());
+			let error = create_auth_required_response(
+				ProxyError::JwtAuthenticationFailure(error),
+				&req,
+				req.extensions().get::<McpAuthentication>().unwrap(),
+			);
+			match error {
+				ProxyError::McpJwtAuthenticationFailure(_, www) => {
+					assert!(www.contains("/.well-known/oauth-protected-resource/all/mcp"));
+					assert_eq!(www.contains("error=\"invalid_token\""), !missing);
+				},
+				other => panic!("expected authentication failure, got {other:?}"),
+			}
 		}
 	}
 

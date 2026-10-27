@@ -8,6 +8,126 @@ use crate::telemetry::log::MetricsConfig;
 
 type ProviderInfo = (&'static str, &'static str, &'static str);
 
+fn strict_test_jwt() -> (Jwt, &'static str, &'static str, &'static str) {
+	setup_test_jwt_with_options(JWTValidationOptions {
+		strict_timestamps: true,
+		max_token_lifetime: Some(std::time::Duration::from_secs(900)),
+		..Default::default()
+	})
+}
+
+#[test]
+fn strict_timestamps_use_exact_boundaries_and_one_clock_sample() {
+	let (jwt, kid, issuer, audience) = strict_test_jwt();
+	let payload = json!({"iss": issuer, "aud": audience, "iat": 1000, "nbf": 1000, "exp": 1900});
+	let token = build_signed_token_with_payload(kid, payload);
+	for now in [1000.0, 1899.0, 1899.999999] {
+		assert!(
+			jwt
+				.validate_claims_at(&token, std::time::Duration::from_secs_f64(now))
+				.is_ok()
+		);
+	}
+	for now in [1900, 1901, 1959, 1990] {
+		assert_eq!(
+			jwt
+				.validate_claims_at(&token, std::time::Duration::from_secs(now))
+				.unwrap_err(),
+			TokenError::Expired
+		);
+	}
+	assert_eq!(
+		jwt
+			.validate_claims_at(&token, std::time::Duration::from_secs(999))
+			.unwrap_err(),
+		TokenError::NotYetValid
+	);
+}
+
+#[test]
+fn strict_timestamps_reject_malformed_future_and_excessive_lifetimes() {
+	let (jwt, kid, issuer, audience) = strict_test_jwt();
+	let base = json!({"iss": issuer, "aud": audience, "iat": 1000, "exp": 1900});
+	let cases = [
+		("iat", json!(1100), TokenError::IssuedInFuture),
+		("nbf", json!(1100), TokenError::NotYetValid),
+		("iat", json!(999), TokenError::ExcessiveLifetime),
+		("iat", json!(1900), TokenError::InvalidTimestamps),
+		("nbf", json!(1900), TokenError::InvalidTimestamps),
+		("iat", json!("1000"), TokenError::InvalidTimestamps),
+		("nbf", json!(null), TokenError::InvalidTimestamps),
+		("iat", json!(-1), TokenError::InvalidTimestamps),
+	];
+	for (claim, value, expected) in cases {
+		let mut payload = base.clone();
+		payload[claim] = value;
+		let token = build_signed_token_with_payload(kid, payload);
+		assert_eq!(
+			jwt
+				.validate_claims_at(&token, std::time::Duration::from_secs(1000))
+				.unwrap_err(),
+			expected,
+			"claim {claim}"
+		);
+	}
+	for claim in ["iat", "exp"] {
+		let mut payload = base.clone();
+		payload.as_object_mut().unwrap().remove(claim);
+		let token = build_signed_token_with_payload(kid, payload);
+		assert!(
+			jwt
+				.validate_claims_at(&token, std::time::Duration::from_secs(1000))
+				.is_err()
+		);
+	}
+}
+
+#[test]
+fn strict_timestamps_preserve_signature_issuer_and_audience_checks() {
+	let (jwt, kid, issuer, audience) = strict_test_jwt();
+	for payload in [
+		json!({"iss": "https://wrong.example", "aud": audience, "iat": 1000, "exp": 1900}),
+		json!({"iss": issuer, "aud": "wrong", "iat": 1000, "exp": 1900}),
+	] {
+		let token = build_signed_token_with_payload(kid, payload);
+		assert!(
+			jwt
+				.validate_claims_at(&token, std::time::Duration::from_secs(1000))
+				.is_err()
+		);
+	}
+	let token = build_signed_token_with_payload(
+		kid,
+		json!({"iss": issuer, "aud": audience, "iat": 1000, "exp": 1900}),
+	);
+	let mut parts = token.split('.').collect::<Vec<_>>();
+	parts[2] = "invalid-signature";
+	assert!(
+		jwt
+			.validate_claims_at(&parts.join("."), std::time::Duration::from_secs(1000))
+			.is_err()
+	);
+}
+
+#[test]
+fn strict_temporal_options_are_opt_in_and_lifetime_requires_strict_validation() {
+	assert!(!JWTValidationOptions::default().strict_timestamps);
+	assert_eq!(JWTValidationOptions::default().max_token_lifetime, None);
+	for options in [
+		json!({"maxTokenLifetime": "15m"}),
+		json!({"strictTimestamps": true, "maxTokenLifetime": "0s"}),
+	] {
+		let options: JWTValidationOptions = serde_json::from_value(options).unwrap();
+		let result = Provider::from_jwks(
+			serde_json::from_value(json!({"keys": []})).unwrap(),
+			"https://example.com".into(),
+			None,
+			options,
+		);
+		assert!(matches!(result, Err(JwkError::InvalidTemporalOptions)));
+	}
+}
+
 fn bearer_location() -> crate::http::auth::AuthorizationLocation {
 	crate::http::auth::AuthorizationLocation::bearer_header()
 }
@@ -394,6 +514,15 @@ fn setup_test_jwt() -> (Jwt, &'static str, &'static str, &'static str) {
 fn setup_test_jwt_with_required_claims(
 	required_claims: HashSet<String>,
 ) -> (Jwt, &'static str, &'static str, &'static str) {
+	setup_test_jwt_with_options(JWTValidationOptions {
+		required_claims,
+		..Default::default()
+	})
+}
+
+fn setup_test_jwt_with_options(
+	options: JWTValidationOptions,
+) -> (Jwt, &'static str, &'static str, &'static str) {
 	let jwks = json!({
 		"keys": [
 			{
@@ -417,10 +546,7 @@ fn setup_test_jwt_with_required_claims(
 		jwks,
 		issuer.to_string(),
 		Some(vec![allowed_aud.to_string()]),
-		JWTValidationOptions {
-			required_claims,
-			..Default::default()
-		},
+		options,
 	)
 	.unwrap();
 

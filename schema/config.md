@@ -532,6 +532,8 @@
 |`binds[].listeners[].routes[].policies.mcpAuthentication.authorizationLocation.cookie.name`|string|Cookie name containing the credential.|
 |`binds[].listeners[].routes[].policies.mcpAuthentication.authorizationLocation.expression`|string|Read the credential from a CEL expression evaluated against the incoming request.<br>CEL expression that returns the credential string. This location can extract credentials but cannot insert them.|
 |`binds[].listeners[].routes[].policies.mcpAuthentication.jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`binds[].listeners[].routes[].policies.mcpAuthentication.jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`binds[].listeners[].routes[].policies.mcpAuthentication.jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`binds[].listeners[].routes[].policies.mcpAuthentication.jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`binds[].listeners[].routes[].policies.mcpAuthentication.jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`binds[].listeners[].routes[].policies.mcpAuthentication.clientId`|string|OAuth client ID advertised to MCP clients when needed.|
@@ -4406,6 +4408,8 @@
 |`binds[].listeners[].routes[].policies.jwtAuth.providers[].jwks.file`|string|Path to a file on disk to load the value from.|
 |`binds[].listeners[].routes[].policies.jwtAuth.providers[].jwks.url`|string||
 |`binds[].listeners[].routes[].policies.jwtAuth.providers[].jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`binds[].listeners[].routes[].policies.jwtAuth.providers[].jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`binds[].listeners[].routes[].policies.jwtAuth.providers[].jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`binds[].listeners[].routes[].policies.jwtAuth.providers[].jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`binds[].listeners[].routes[].policies.jwtAuth.providers[].jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`binds[].listeners[].routes[].policies.jwtAuth.issuer`|string|Expected token issuer. The JWT `iss` claim is required and must match.|
@@ -4414,6 +4418,8 @@
 |`binds[].listeners[].routes[].policies.jwtAuth.jwks.file`|string|Path to a file on disk to load the value from.|
 |`binds[].listeners[].routes[].policies.jwtAuth.jwks.url`|string||
 |`binds[].listeners[].routes[].policies.jwtAuth.jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`binds[].listeners[].routes[].policies.jwtAuth.jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`binds[].listeners[].routes[].policies.jwtAuth.jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`binds[].listeners[].routes[].policies.jwtAuth.jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`binds[].listeners[].routes[].policies.jwtAuth.jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`binds[].listeners[].routes[].policies.oidc`|object|Authenticate browser requests with OIDC authorization code flow.|
@@ -19104,6 +19110,8 @@
 |`binds[].listeners[].policies.jwtAuth.providers[].jwks.file`|string|Path to a file on disk to load the value from.|
 |`binds[].listeners[].policies.jwtAuth.providers[].jwks.url`|string||
 |`binds[].listeners[].policies.jwtAuth.providers[].jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`binds[].listeners[].policies.jwtAuth.providers[].jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`binds[].listeners[].policies.jwtAuth.providers[].jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`binds[].listeners[].policies.jwtAuth.providers[].jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`binds[].listeners[].policies.jwtAuth.providers[].jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`binds[].listeners[].policies.jwtAuth.issuer`|string|Expected token issuer. The JWT `iss` claim is required and must match.|
@@ -19112,6 +19120,8 @@
 |`binds[].listeners[].policies.jwtAuth.jwks.file`|string|Path to a file on disk to load the value from.|
 |`binds[].listeners[].policies.jwtAuth.jwks.url`|string||
 |`binds[].listeners[].policies.jwtAuth.jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`binds[].listeners[].policies.jwtAuth.jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`binds[].listeners[].policies.jwtAuth.jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`binds[].listeners[].policies.jwtAuth.jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`binds[].listeners[].policies.jwtAuth.jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`binds[].listeners[].policies.authorization`|object|Authorization rules for incoming HTTP requests.|
@@ -22293,6 +22303,8 @@
 |`policies[].policy.mcpAuthentication.authorizationLocation.cookie.name`|string|Cookie name containing the credential.|
 |`policies[].policy.mcpAuthentication.authorizationLocation.expression`|string|Read the credential from a CEL expression evaluated against the incoming request.<br>CEL expression that returns the credential string. This location can extract credentials but cannot insert them.|
 |`policies[].policy.mcpAuthentication.jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`policies[].policy.mcpAuthentication.jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`policies[].policy.mcpAuthentication.jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`policies[].policy.mcpAuthentication.jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`policies[].policy.mcpAuthentication.jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`policies[].policy.mcpAuthentication.clientId`|string|OAuth client ID advertised to MCP clients when needed.|
@@ -26167,6 +26179,8 @@
 |`policies[].policy.jwtAuth.providers[].jwks.file`|string|Path to a file on disk to load the value from.|
 |`policies[].policy.jwtAuth.providers[].jwks.url`|string||
 |`policies[].policy.jwtAuth.providers[].jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`policies[].policy.jwtAuth.providers[].jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`policies[].policy.jwtAuth.providers[].jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`policies[].policy.jwtAuth.providers[].jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`policies[].policy.jwtAuth.providers[].jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`policies[].policy.jwtAuth.issuer`|string|Expected token issuer. The JWT `iss` claim is required and must match.|
@@ -26175,6 +26189,8 @@
 |`policies[].policy.jwtAuth.jwks.file`|string|Path to a file on disk to load the value from.|
 |`policies[].policy.jwtAuth.jwks.url`|string||
 |`policies[].policy.jwtAuth.jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`policies[].policy.jwtAuth.jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`policies[].policy.jwtAuth.jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`policies[].policy.jwtAuth.jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`policies[].policy.jwtAuth.jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`policies[].policy.oidc`|object|Authenticate browser requests with OIDC authorization code flow.|
@@ -40910,6 +40926,8 @@
 |`routeGroups[].routes[].policies.mcpAuthentication.authorizationLocation.cookie.name`|string|Cookie name containing the credential.|
 |`routeGroups[].routes[].policies.mcpAuthentication.authorizationLocation.expression`|string|Read the credential from a CEL expression evaluated against the incoming request.<br>CEL expression that returns the credential string. This location can extract credentials but cannot insert them.|
 |`routeGroups[].routes[].policies.mcpAuthentication.jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`routeGroups[].routes[].policies.mcpAuthentication.jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`routeGroups[].routes[].policies.mcpAuthentication.jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`routeGroups[].routes[].policies.mcpAuthentication.jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`routeGroups[].routes[].policies.mcpAuthentication.jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`routeGroups[].routes[].policies.mcpAuthentication.clientId`|string|OAuth client ID advertised to MCP clients when needed.|
@@ -44784,6 +44802,8 @@
 |`routeGroups[].routes[].policies.jwtAuth.providers[].jwks.file`|string|Path to a file on disk to load the value from.|
 |`routeGroups[].routes[].policies.jwtAuth.providers[].jwks.url`|string||
 |`routeGroups[].routes[].policies.jwtAuth.providers[].jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`routeGroups[].routes[].policies.jwtAuth.providers[].jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`routeGroups[].routes[].policies.jwtAuth.providers[].jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`routeGroups[].routes[].policies.jwtAuth.providers[].jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`routeGroups[].routes[].policies.jwtAuth.providers[].jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`routeGroups[].routes[].policies.jwtAuth.issuer`|string|Expected token issuer. The JWT `iss` claim is required and must match.|
@@ -44792,6 +44812,8 @@
 |`routeGroups[].routes[].policies.jwtAuth.jwks.file`|string|Path to a file on disk to load the value from.|
 |`routeGroups[].routes[].policies.jwtAuth.jwks.url`|string||
 |`routeGroups[].routes[].policies.jwtAuth.jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`routeGroups[].routes[].policies.jwtAuth.jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`routeGroups[].routes[].policies.jwtAuth.jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`routeGroups[].routes[].policies.jwtAuth.jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`routeGroups[].routes[].policies.jwtAuth.jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`routeGroups[].routes[].policies.oidc`|object|Authenticate browser requests with OIDC authorization code flow.|
@@ -59189,6 +59211,8 @@
 |`gateways.*.listeners[].jwtAuth.providers[].jwks.file`|string|Path to a file on disk to load the value from.|
 |`gateways.*.listeners[].jwtAuth.providers[].jwks.url`|string||
 |`gateways.*.listeners[].jwtAuth.providers[].jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`gateways.*.listeners[].jwtAuth.providers[].jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`gateways.*.listeners[].jwtAuth.providers[].jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`gateways.*.listeners[].jwtAuth.providers[].jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`gateways.*.listeners[].jwtAuth.providers[].jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`gateways.*.listeners[].jwtAuth.issuer`|string|Expected token issuer. The JWT `iss` claim is required and must match.|
@@ -59197,6 +59221,8 @@
 |`gateways.*.listeners[].jwtAuth.jwks.file`|string|Path to a file on disk to load the value from.|
 |`gateways.*.listeners[].jwtAuth.jwks.url`|string||
 |`gateways.*.listeners[].jwtAuth.jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`gateways.*.listeners[].jwtAuth.jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`gateways.*.listeners[].jwtAuth.jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`gateways.*.listeners[].jwtAuth.jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`gateways.*.listeners[].jwtAuth.jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`gateways.*.listeners[].authorization`|object|Authorization rules for incoming HTTP requests.|
@@ -60522,6 +60548,8 @@
 |`gateways.*.jwtAuth.providers[].jwks.file`|string|Path to a file on disk to load the value from.|
 |`gateways.*.jwtAuth.providers[].jwks.url`|string||
 |`gateways.*.jwtAuth.providers[].jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`gateways.*.jwtAuth.providers[].jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`gateways.*.jwtAuth.providers[].jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`gateways.*.jwtAuth.providers[].jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`gateways.*.jwtAuth.providers[].jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`gateways.*.jwtAuth.issuer`|string|Expected token issuer. The JWT `iss` claim is required and must match.|
@@ -60530,6 +60558,8 @@
 |`gateways.*.jwtAuth.jwks.file`|string|Path to a file on disk to load the value from.|
 |`gateways.*.jwtAuth.jwks.url`|string||
 |`gateways.*.jwtAuth.jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`gateways.*.jwtAuth.jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`gateways.*.jwtAuth.jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`gateways.*.jwtAuth.jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`gateways.*.jwtAuth.jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`gateways.*.authorization`|object|Authorization rules for incoming HTTP requests.|
@@ -62202,6 +62232,8 @@
 |`routes[].policies.mcpAuthentication.authorizationLocation.cookie.name`|string|Cookie name containing the credential.|
 |`routes[].policies.mcpAuthentication.authorizationLocation.expression`|string|Read the credential from a CEL expression evaluated against the incoming request.<br>CEL expression that returns the credential string. This location can extract credentials but cannot insert them.|
 |`routes[].policies.mcpAuthentication.jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`routes[].policies.mcpAuthentication.jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`routes[].policies.mcpAuthentication.jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`routes[].policies.mcpAuthentication.jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`routes[].policies.mcpAuthentication.jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`routes[].policies.mcpAuthentication.clientId`|string|OAuth client ID advertised to MCP clients when needed.|
@@ -66076,6 +66108,8 @@
 |`routes[].policies.jwtAuth.providers[].jwks.file`|string|Path to a file on disk to load the value from.|
 |`routes[].policies.jwtAuth.providers[].jwks.url`|string||
 |`routes[].policies.jwtAuth.providers[].jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`routes[].policies.jwtAuth.providers[].jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`routes[].policies.jwtAuth.providers[].jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`routes[].policies.jwtAuth.providers[].jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`routes[].policies.jwtAuth.providers[].jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`routes[].policies.jwtAuth.issuer`|string|Expected token issuer. The JWT `iss` claim is required and must match.|
@@ -66084,6 +66118,8 @@
 |`routes[].policies.jwtAuth.jwks.file`|string|Path to a file on disk to load the value from.|
 |`routes[].policies.jwtAuth.jwks.url`|string||
 |`routes[].policies.jwtAuth.jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`routes[].policies.jwtAuth.jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`routes[].policies.jwtAuth.jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`routes[].policies.jwtAuth.jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`routes[].policies.jwtAuth.jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`routes[].policies.oidc`|object|Authenticate browser requests with OIDC authorization code flow.|
@@ -84848,6 +84884,8 @@
 |`llm.policies.jwtAuth.providers[].jwks.file`|string|Path to a file on disk to load the value from.|
 |`llm.policies.jwtAuth.providers[].jwks.url`|string||
 |`llm.policies.jwtAuth.providers[].jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`llm.policies.jwtAuth.providers[].jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`llm.policies.jwtAuth.providers[].jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`llm.policies.jwtAuth.providers[].jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`llm.policies.jwtAuth.providers[].jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`llm.policies.jwtAuth.issuer`|string|Expected token issuer. The JWT `iss` claim is required and must match.|
@@ -84856,6 +84894,8 @@
 |`llm.policies.jwtAuth.jwks.file`|string|Path to a file on disk to load the value from.|
 |`llm.policies.jwtAuth.jwks.url`|string||
 |`llm.policies.jwtAuth.jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`llm.policies.jwtAuth.jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`llm.policies.jwtAuth.jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`llm.policies.jwtAuth.jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`llm.policies.jwtAuth.jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`llm.policies.authorization`|object|Authorization rules for incoming HTTP requests.|
@@ -89699,6 +89739,8 @@
 |`mcp.policies.mcpAuthentication.authorizationLocation.cookie.name`|string|Cookie name containing the credential.|
 |`mcp.policies.mcpAuthentication.authorizationLocation.expression`|string|Read the credential from a CEL expression evaluated against the incoming request.<br>CEL expression that returns the credential string. This location can extract credentials but cannot insert them.|
 |`mcp.policies.mcpAuthentication.jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`mcp.policies.mcpAuthentication.jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`mcp.policies.mcpAuthentication.jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`mcp.policies.mcpAuthentication.jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`mcp.policies.mcpAuthentication.jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`mcp.policies.mcpAuthentication.clientId`|string|OAuth client ID advertised to MCP clients when needed.|
@@ -93573,6 +93615,8 @@
 |`mcp.policies.jwtAuth.providers[].jwks.file`|string|Path to a file on disk to load the value from.|
 |`mcp.policies.jwtAuth.providers[].jwks.url`|string||
 |`mcp.policies.jwtAuth.providers[].jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`mcp.policies.jwtAuth.providers[].jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`mcp.policies.jwtAuth.providers[].jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`mcp.policies.jwtAuth.providers[].jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`mcp.policies.jwtAuth.providers[].jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`mcp.policies.jwtAuth.issuer`|string|Expected token issuer. The JWT `iss` claim is required and must match.|
@@ -93581,6 +93625,8 @@
 |`mcp.policies.jwtAuth.jwks.file`|string|Path to a file on disk to load the value from.|
 |`mcp.policies.jwtAuth.jwks.url`|string||
 |`mcp.policies.jwtAuth.jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`mcp.policies.jwtAuth.jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`mcp.policies.jwtAuth.jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`mcp.policies.jwtAuth.jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`mcp.policies.jwtAuth.jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`mcp.policies.oidc`|object|Authenticate browser requests with OIDC authorization code flow.|
@@ -95783,6 +95829,8 @@
 |`ui.policies.jwtAuth.providers[].jwks.file`|string|Path to a file on disk to load the value from.|
 |`ui.policies.jwtAuth.providers[].jwks.url`|string||
 |`ui.policies.jwtAuth.providers[].jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`ui.policies.jwtAuth.providers[].jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`ui.policies.jwtAuth.providers[].jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`ui.policies.jwtAuth.providers[].jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`ui.policies.jwtAuth.providers[].jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`ui.policies.jwtAuth.issuer`|string|Expected token issuer. The JWT `iss` claim is required and must match.|
@@ -95791,6 +95839,8 @@
 |`ui.policies.jwtAuth.jwks.file`|string|Path to a file on disk to load the value from.|
 |`ui.policies.jwtAuth.jwks.url`|string||
 |`ui.policies.jwtAuth.jwtValidationOptions`|object|Claim requirements to enforce after the token signature is verified.|
+|`ui.policies.jwtAuth.jwtValidationOptions.strictTimestamps`|boolean|Validate NumericDate timestamps without clock tolerance, using one time sample.<br>Requires exp; validates optional nbf and iat, including fractional timestamps.<br>An exp equal to the current time is expired. Unset preserves existing defaults.|
+|`ui.policies.jwtAuth.jwtValidationOptions.maxTokenLifetime`|string|Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.|
 |`ui.policies.jwtAuth.jwtValidationOptions.requiredClaims`|[]string|Claims that must be present in the token before validation.<br>Only "exp", "nbf", "aud", "iss", "sub" are enforced; others<br>(including "iat" and "jti") are ignored.<br>Defaults to ["exp"]. Use an empty list to add no claim requirements beyond<br>those implied by the configured issuer and audiences.|
 |`ui.policies.jwtAuth.jwtValidationOptions.maxJwksAge`|string|Maximum time since the remote keyset was successfully fetched. When set,<br>verification fails after this age even if a reload retains older config.<br>Unset preserves the existing behavior. Requires a remote JWKS source.|
 |`ui.policies.authorization`|object|Authorization rules for incoming HTTP requests.|

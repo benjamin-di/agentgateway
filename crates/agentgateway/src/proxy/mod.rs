@@ -582,16 +582,19 @@ impl ProxyError {
 		}
 
 		// Add WWW-Authenticate header for MCP failures
-		if let ProxyError::McpJwtAuthenticationFailure(_, www) = &self {
+		if let ProxyError::McpJwtAuthenticationFailure(inner, www) = &self {
 			if let Ok(hv) = HeaderValue::try_from(www) {
 				rb = rb.header(hyper::header::WWW_AUTHENTICATE, hv);
 			}
 			rb = rb.header("content-type", "application/json");
-			return rb
-				.body(http::Body::from(Bytes::from(
-					r#"{"error":"unauthorized","error_description":"JWT token required"}"#,
-				)))
-				.unwrap();
+			let body = if matches!(inner.as_ref(), ProxyError::JwtAuthenticationFailure(error)
+				if !matches!(error, http::jwt::TokenError::Missing))
+			{
+				r#"{"error":"invalid_token","error_description":"The access token is invalid"}"#
+			} else {
+				r#"{"error":"unauthorized","error_description":"JWT token required"}"#
+			};
+			return rb.body(http::Body::from(Bytes::from(body))).unwrap();
 		}
 		if let ProxyError::MCP(e) = self
 			&& let Some(body) = e.jsonrpc_error_body()

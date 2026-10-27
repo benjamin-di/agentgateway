@@ -32,6 +32,21 @@ pub enum TokenError {
 	#[error("no bearer token found")]
 	Missing,
 
+	#[error("token_expired")]
+	Expired,
+
+	#[error("token_not_yet_valid")]
+	NotYetValid,
+
+	#[error("token_issued_in_future")]
+	IssuedInFuture,
+
+	#[error("invalid_token_timestamps")]
+	InvalidTimestamps,
+
+	#[error("token_lifetime_exceeded")]
+	ExcessiveLifetime,
+
 	#[error("the token header does not specify a `kid`")]
 	MissingKeyId,
 
@@ -45,8 +60,26 @@ pub enum TokenError {
 	CredentialRemoval(String),
 }
 
+impl TokenError {
+	/// Bounded diagnostic categories; never include token material or claim values.
+	pub fn reason_code(&self) -> &'static str {
+		match self {
+			Self::Expired => "token_expired",
+			Self::NotYetValid => "token_not_yet_valid",
+			Self::IssuedInFuture => "token_issued_in_future",
+			Self::InvalidTimestamps => "invalid_token_timestamps",
+			Self::ExcessiveLifetime => "token_lifetime_exceeded",
+			Self::Missing => "missing_token",
+			Self::ExpiredSigningKeys => "signing_keys_expired",
+			_ => "invalid_token",
+		}
+	}
+}
+
 #[derive(thiserror::Error, Debug)]
 pub enum JwkError {
+	#[error("maxTokenLifetime requires strictTimestamps and a positive duration")]
+	InvalidTemporalOptions,
 	#[error("failed to load JWKS: {0}")]
 	JwkLoadError(anyhow::Error),
 	#[error("failed to parse JWKS: {0}")]
@@ -86,6 +119,8 @@ pub struct Provider {
 	keys: HashMap<String, Jwk>,
 	maximum_key_age: Option<Duration>,
 	key_freshness: Option<crate::resource_manager::ResourceFreshness>,
+	strict_timestamps: bool,
+	maximum_token_lifetime: Option<Duration>,
 }
 
 // TODO: can we give anything useful here?
@@ -128,11 +163,24 @@ impl serde::Serialize for Provider {
 				with = "crate::serde_dur_option"
 			)]
 			maximum_key_age: Option<Duration>,
+			#[serde(
+				rename = "strictTimestamps",
+				skip_serializing_if = "std::ops::Not::not"
+			)]
+			strict_timestamps: bool,
+			#[serde(
+				rename = "maxTokenLifetime",
+				skip_serializing_if = "Option::is_none",
+				with = "crate::serde_dur_option"
+			)]
+			maximum_token_lifetime: Option<Duration>,
 		}
 		Serde {
 			issuer: &self.issuer,
 			keys: self.keys.keys().map(|x| x.as_str()).collect::<Vec<_>>(),
 			maximum_key_age: self.maximum_key_age,
+			strict_timestamps: self.strict_timestamps,
+			maximum_token_lifetime: self.maximum_token_lifetime,
 		}
 		.serialize(serializer)
 	}
@@ -292,6 +340,19 @@ pub enum Mode {
 #[derive(Eq, PartialEq)]
 #[apply(schema_de!)]
 pub struct JWTValidationOptions {
+	/// Validate NumericDate timestamps without clock tolerance, using one time sample.
+	/// Requires exp; validates optional nbf and iat, including fractional timestamps.
+	/// An exp equal to the current time is expired. Unset preserves existing defaults.
+	#[serde(default, skip_serializing_if = "std::ops::Not::not")]
+	pub strict_timestamps: bool,
+	/// Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.
+	#[serde(
+		default,
+		skip_serializing_if = "Option::is_none",
+		with = "crate::serde_dur_option"
+	)]
+	#[cfg_attr(feature = "schema", schemars(with = "Option<String>"))]
+	pub max_token_lifetime: Option<Duration>,
 	/// Claims that must be present in the token before validation.
 	/// Only "exp", "nbf", "aud", "iss", "sub" are enforced; others
 	/// (including "iat" and "jti") are ignored.
@@ -336,6 +397,8 @@ impl Default for JWTValidationOptions {
 		Self {
 			required_claims: default_required_claims(),
 			max_jwks_age: None,
+			strict_timestamps: false,
+			max_token_lifetime: None,
 		}
 	}
 }
@@ -416,6 +479,14 @@ impl Provider {
 		audiences: Option<Vec<String>>,
 		jwt_validation_options: JWTValidationOptions,
 	) -> Result<Provider, JwkError> {
+		if jwt_validation_options
+			.max_token_lifetime
+			.is_some_and(|age| age.is_zero())
+			|| (jwt_validation_options.max_token_lifetime.is_some()
+				&& !jwt_validation_options.strict_timestamps)
+		{
+			return Err(JwkError::InvalidTemporalOptions);
+		}
 		warn_unsupported_claims(&jwt_validation_options.required_claims);
 
 		let mut keys = HashMap::new();
@@ -493,6 +564,12 @@ impl Provider {
 			// The new() requires 1 algorithm, so just pass the first before we override it
 			let mut validation = Validation::new(*supported_algorithms.first().unwrap());
 			validation.validate_nbf = true;
+			if jwt_validation_options.strict_timestamps {
+				// Signature, issuer, audience and required claims remain validated here.
+				// Strict temporal validation below owns its clock and boundaries.
+				validation.validate_exp = false;
+				validation.validate_nbf = false;
+			}
 			validation.algorithms = supported_algorithms;
 			// Override required_spec_claims with the user-configured set. A configured
 			// issuer or audience also implies that the corresponding claim must exist;
@@ -522,7 +599,52 @@ impl Provider {
 			keys,
 			maximum_key_age: jwt_validation_options.max_jwks_age,
 			key_freshness: None,
+			strict_timestamps: jwt_validation_options.strict_timestamps,
+			maximum_token_lifetime: jwt_validation_options.max_token_lifetime,
 		})
+	}
+
+	fn validate_timestamps(
+		&self,
+		claims: &Map<String, Value>,
+		now: Duration,
+	) -> Result<(), TokenError> {
+		if !self.strict_timestamps {
+			return Ok(());
+		}
+		let timestamp = |name: &str| -> Result<Option<Duration>, TokenError> {
+			claims
+				.get(name)
+				.map(|value| {
+					value
+						.as_f64()
+						.and_then(|n| Duration::try_from_secs_f64(n).ok())
+						.ok_or(TokenError::InvalidTimestamps)
+				})
+				.transpose()
+		};
+		let exp = timestamp("exp")?.ok_or(TokenError::InvalidTimestamps)?;
+		let iat = timestamp("iat")?;
+		let nbf = timestamp("nbf")?;
+		if iat.is_some_and(|iat| iat >= exp) || nbf.is_some_and(|nbf| nbf >= exp) {
+			return Err(TokenError::InvalidTimestamps);
+		}
+		if now >= exp {
+			return Err(TokenError::Expired);
+		}
+		if nbf.is_some_and(|nbf| nbf > now) {
+			return Err(TokenError::NotYetValid);
+		}
+		if iat.is_some_and(|iat| iat > now) {
+			return Err(TokenError::IssuedInFuture);
+		}
+		if let Some(maximum) = self.maximum_token_lifetime {
+			let iat = iat.ok_or(TokenError::InvalidTimestamps)?;
+			if exp.saturating_sub(iat) > maximum {
+				return Err(TokenError::ExcessiveLifetime);
+			}
+		}
+		Ok(())
 	}
 }
 
@@ -653,6 +775,7 @@ impl Jwt {
 				return Ok(());
 			},
 			Err(e) => {
+				tracing::warn!(reason = e.reason_code(), "JWT authentication rejected");
 				dtrace::pol_result!(
 					dtrace::Severity::Error,
 					Apply,
@@ -685,6 +808,13 @@ impl Jwt {
 	}
 
 	pub fn validate_claims(&self, token: &str) -> Result<Claims, TokenError> {
+		let now = std::time::SystemTime::now()
+			.duration_since(std::time::UNIX_EPOCH)
+			.map_err(|_| TokenError::InvalidTimestamps)?;
+		self.validate_claims_at(token, now)
+	}
+
+	fn validate_claims_at(&self, token: &str, now: Duration) -> Result<Claims, TokenError> {
 		let header = decode_header(token).map_err(|error| {
 			debug!(?error, "Received token with invalid header.");
 
@@ -706,11 +836,14 @@ impl Jwt {
 				return Err(TokenError::ExpiredSigningKeys);
 			}
 			decode::<Map<String, Value>>(token, &key.decoding, &key.validation)
-				.map(|decoded_token| Claims {
-					inner: decoded_token.claims,
-					jwt: SecretString::new(token.into()),
-				})
 				.map_err(TokenError::Invalid)
+				.and_then(|decoded_token| {
+					provider.validate_timestamps(&decoded_token.claims, now)?;
+					Ok(Claims {
+						inner: decoded_token.claims,
+						jwt: SecretString::new(token.into()),
+					})
+				})
 		};
 
 		// A kid is only unique within one issuer's JWKS, so different issuers can share a kid (Entra tenants share keys; unrelated IdPs can collide)

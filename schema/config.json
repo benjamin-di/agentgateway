@@ -4920,6 +4920,17 @@
       "description": "JWT validation options controlling required claims and remote signing-key trust.\n\nThe `required_claims` set specifies which RFC 7519 registered claims must\nexist in the token payload before validation proceeds. Only the following\nvalues are recognized: `exp`, `nbf`, `aud`, `iss`, `sub`. Other registered\nclaims such as `iat` and `jti` are **not** enforced by the underlying\n`jsonwebtoken` library and will be silently ignored.\n\nThis only enforces **presence**. A configured issuer and non-empty audience\nlist independently require `iss` and `aud`, respectively. Standard claims\nlike `exp` and `nbf` have their values validated independently (e.g., expiry\nis always checked when the `exp` claim is present, regardless of this setting).\n\nDefaults to `[\"exp\"]`.",
       "type": "object",
       "properties": {
+        "strictTimestamps": {
+          "description": "Validate NumericDate timestamps without clock tolerance, using one time sample.\nRequires exp; validates optional nbf and iat, including fractional timestamps.\nAn exp equal to the current time is expired. Unset preserves existing defaults.",
+          "type": "boolean"
+        },
+        "maxTokenLifetime": {
+          "description": "Maximum exp - iat. Requires strictTimestamps, a positive duration, and an iat claim.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "requiredClaims": {
           "description": "Claims that must be present in the token before validation.\nOnly \"exp\", \"nbf\", \"aud\", \"iss\", \"sub\" are enforced; others\n(including \"iat\" and \"jti\") are ignored.\nDefaults to [\"exp\"]. Use an empty list to add no claim requirements beyond\nthose implied by the configured issuer and audiences.",
           "type": "array",

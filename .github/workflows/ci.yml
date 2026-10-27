@@ -23,4 +23,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: make lint
       - run: make test
+      - uses: astral-sh/setup-uv@v8.3.2
+      - run: cargo build -p agentgateway-app
+      - run: uv run --script tools/test-jwt-refresh.py --binary target/debug/agentgateway
       - run: make generate-schema && git diff --exit-code -- schema
