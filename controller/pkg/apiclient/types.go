@@ -2,9 +2,11 @@ package apiclient
 
 import (
 	"context"
+	"sync"
 
 	"istio.io/istio/pkg/config/schema/kubeclient"
 	"istio.io/istio/pkg/kube/kubetypes"
+	certificatesv1 "k8s.io/api/certificates/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
@@ -14,8 +16,22 @@ import (
 	"github.com/agentgateway/agentgateway/controller/pkg/wellknown"
 )
 
-// RegisterTypes registers all the types used by our API Client
-func RegisterTypes() {
+// RegisterTypes registers all the types used by our API Client.
+// The registry is an unsynchronized global map, so this only runs once.
+var RegisterTypes = sync.OnceFunc(func() {
+	kubeclient.Register(
+		wellknown.ClusterTrustBundleGVR,
+		wellknown.ClusterTrustBundleGVK,
+		func(ctx context.Context, c kubeclient.ClientGetter, _ string, o metav1.ListOptions) (runtime.Object, error) {
+			return c.Kube().CertificatesV1().ClusterTrustBundles().List(ctx, o)
+		},
+		func(ctx context.Context, c kubeclient.ClientGetter, _ string, o metav1.ListOptions) (watch.Interface, error) {
+			return c.Kube().CertificatesV1().ClusterTrustBundles().Watch(ctx, o)
+		},
+		func(c kubeclient.ClientGetter, _ string) kubetypes.WriteAPI[*certificatesv1.ClusterTrustBundle] {
+			return c.Kube().CertificatesV1().ClusterTrustBundles()
+		},
+	)
 	kubeclient.Register(
 		wellknown.AgentgatewayModelGVR,
 		wellknown.AgentgatewayModelGVK,
@@ -81,4 +97,4 @@ func RegisterTypes() {
 			return c.(Client).GatewayAPI().GatewayV1().TCPRoutes(namespace)
 		},
 	)
-}
+})

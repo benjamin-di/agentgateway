@@ -1,6 +1,6 @@
-This deployment branch starts at upstream v1.6.0. The only behavior change is the
-optional maximum age of successfully fetched remote JWT signing keys, developed
-on the fork's jwt-jwks-max-age branch. It must have an open upstream pull request
-before deployment. Drop the backport when adopting an upstream release containing
-that change. The additional fleet workflows use GitHub-hosted runners and upstream's
-Dockerfile; it adds no gateway behavior.
+This deployment branch integrates upstream v1.7.0 with the optional bounded remote
+JWKS trust-age change proposed in upstream #4142 and the existing optional strict
+JWT timestamp/maximum-lifetime validation. Public source qualification and image
+publication retain the existing reproducible release contract. The JWT protocol
+fixture covers refresh, expiry and concurrent calls against the actual binary.
+Drop each behavioral carry when a compatible upstream release contains it.

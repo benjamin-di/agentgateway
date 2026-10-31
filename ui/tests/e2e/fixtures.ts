@@ -1,4 +1,5 @@
 import type { Page, Route } from '@playwright/test';
+import { dump, load } from 'js-yaml';
 
 import { mcpSettingsFields } from '../../src/config';
 import type { DumpModel, StoresDump } from '../../src/gateway-admin';
@@ -344,6 +345,28 @@ export function xdsDumpModels(): DumpModel[] {
 	];
 }
 
+// `match.model` may be a wildcard (`gpt-*`, `*-latest`, `*`) and visibility defaults to Public,
+// so a public pattern is a normal dump entry.
+export function xdsWildcardModel(): DumpModel {
+	return {
+		listenerKey: 'default/model-gateway.llm',
+		key: 'default/gpt-5-any.llm',
+		name: 'gpt-5-*',
+		routerKey: '',
+		kind: {
+			concrete: {
+				name: 'gpt-5-*',
+				created: 1783641600,
+				visibility: 'public',
+				headerMatches: [],
+				backend: { weight: 1, backend: 'default/gpt-5-any/backend.llm' },
+				policies: { llm: {} },
+				backendPolicies: []
+			}
+		}
+	};
+}
+
 export function xdsDump(models: DumpModel[] = xdsDumpModels()): StoresDump {
 	return {
 		workloads: [],
@@ -373,7 +396,8 @@ export async function mockXdsGateway(page: Page, dump: StoresDump = xdsDump()) {
 				buildProfile: 'test',
 				buildTarget: 'test'
 			},
-			ui: { gatewayMode: 'xds', configStoreMode: 'file' }
+			ui: { gatewayMode: 'xds', configStoreMode: 'file' },
+			configReload: { synchronized: true, lastError: null }
 		});
 	});
 
@@ -386,7 +410,9 @@ export async function mockXdsGateway(page: Page, dump: StoresDump = xdsDump()) {
 
 export async function mockGateway(page: Page, initialConfig: TestConfig = populatedConfig()) {
 	let config = structuredClone(initialConfig);
+	let rawConfig: string | null = null;
 	const postedConfigs: TestConfig[] = [];
+	const postedRawConfigs: string[] = [];
 	const chatRequests: Array<Record<string, unknown>> = [];
 	const chatUrls: string[] = [];
 	const mcpRequests: Array<Record<string, unknown>> = [];
@@ -402,7 +428,8 @@ export async function mockGateway(page: Page, initialConfig: TestConfig = popula
 				buildProfile: 'test',
 				buildTarget: 'test'
 			},
-			ui: { gatewayMode: 'standalone', configStoreMode: 'file' }
+			ui: { gatewayMode: 'standalone', configStoreMode: 'file' },
+			configReload: { synchronized: true, lastError: null }
 		});
 	});
 
@@ -417,6 +444,34 @@ export async function mockGateway(page: Page, initialConfig: TestConfig = popula
 		}
 		if (route.request().method() === 'POST') {
 			config = route.request().postDataJSON() as TestConfig;
+			rawConfig = null;
+			postedConfigs.push(structuredClone(config));
+			await json(route, { status: 'ok', message: 'saved' });
+			return;
+		}
+		await route.fallback();
+	});
+
+	// The raw editor reads and writes the file text; the gateway validates it before saving.
+	await page.route('**/api/config/raw', async route => {
+		if (route.request().method() === 'GET') {
+			await route.fulfill({
+				status: 200,
+				contentType: 'text/plain',
+				body: rawConfig ?? dump(config, { noRefs: true })
+			});
+			return;
+		}
+		if (route.request().method() === 'POST') {
+			// Cross-origin YAML writes require a CORS preflight.
+			const contentType = route.request().headers()['content-type'] ?? '';
+			if (!contentType.startsWith('application/yaml')) {
+				await route.fulfill({ status: 415, body: 'unsupported media type' });
+				return;
+			}
+			rawConfig = route.request().postData() ?? '';
+			config = load(rawConfig) as TestConfig;
+			postedRawConfigs.push(rawConfig);
 			postedConfigs.push(structuredClone(config));
 			await json(route, { status: 'ok', message: 'saved' });
 			return;
@@ -521,7 +576,8 @@ export async function mockGateway(page: Page, initialConfig: TestConfig = popula
 
 ${Array.from({ length: 24 }, (_, index) => `/workspace/path-${index + 1}`).join('\n')}
 
-[docs](https://example.invalid/docs) ![probe](https://example.invalid/pixel)`
+[docs](https://example.invalid/docs) ![probe](https://example.invalid/pixel)
+<img src="x" onerror="window.__logMarkdownProbe = 1">raw-html-probe<script>window.__logMarkdownProbe = 1</script>`
 								}
 							]
 						},
@@ -614,6 +670,8 @@ ${Array.from({ length: 24 }, (_, index) => `/workspace/path-${index + 1}`).join(
 		});
 	});
 
+	await page.route('**/v1/models', route => json(route, { data: [] }));
+
 	await page.route('**/v1/chat/completions', async route => {
 		chatUrls.push(route.request().url());
 		chatRequests.push(route.request().postDataJSON() as Record<string, unknown>);
@@ -688,6 +746,7 @@ ${Array.from({ length: 24 }, (_, index) => `/workspace/path-${index + 1}`).join(
 
 	return {
 		postedConfigs,
+		postedRawConfigs,
 		chatRequests,
 		chatUrls,
 		mcpRequests,
